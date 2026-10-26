@@ -1,0 +1,857 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusCrypto - Beginner Web3 Hub & Crypto Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                        },
+                        darkbg: '#0B0F19',
+                        darkcard: '#111827',
+                        darkborder: '#1F2937'
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s infinite alternate',
+                    },
+                    keyframes: {
+                        glow: {
+                            '0%': { boxShadow: '0 0 10px rgba(99, 102, 241, 0.4)' },
+                            '100%': { boxShadow: '0 0 25px rgba(6, 182, 212, 0.7)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #080c14;
+            color: #f3f4f6;
+        }
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glow-border:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+        }
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #374151;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Toast Notification System -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- Modal Backdrop & Window -->
+    <div id="action-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="glass-panel p-6 sm:p-8 rounded-2xl max-w-md w-full mx-4 border border-brand-500/30 transform scale-95 transition-transform duration-300 relative shadow-2xl" id="modal-content">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-1 transition-colors">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="modal-body">
+                <!-- Dynamic Content Injected Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="sticky top-0 z-40 glass-panel border-b border-gray-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand Logo -->
+                <div class="flex items-center space-x-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-brand-cyan flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-500/30">
+                        <i class="fa-solid fa-cube"></i>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-brand-cyan">
+                        Nexus<span class="text-brand-500">Crypto</span>
+                    </span>
+                </div>
+
+                <!-- Desktop Navigation Links -->
+                <div class="hidden md:flex items-center space-x-6 text-sm font-medium text-gray-300">
+                    <a href="#market" class="hover:text-brand-400 transition-colors">Market</a>
+                    <a href="#learn-earn" class="hover:text-brand-400 transition-colors">Learn & Earn</a>
+                    <a href="#airdrops" class="hover:text-brand-400 transition-colors flex items-center gap-1.5">
+                        Airdrops <span class="px-2 py-0.5 text-xs rounded-full bg-brand-cyan/20 text-brand-cyan font-semibold">Free</span>
+                    </a>
+                    <a href="#converter" class="hover:text-brand-400 transition-colors">Converter</a>
+                </div>
+
+                <!-- Right Action Header Button -->
+                <div class="flex items-center space-x-3">
+                    <div class="bg-gray-800/80 border border-gray-700/60 rounded-xl px-3 py-1.5 flex items-center space-x-2 text-xs text-gray-300">
+                        <i class="fa-solid fa-trophy text-yellow-400 text-sm"></i>
+                        <span class="hidden sm:inline">User Points:</span>
+                        <span id="user-points" class="font-bold text-brand-cyan">150 PTS</span>
+                    </div>
+                    <button onclick="openSimulatedWallet()" class="bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-cyan text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition-all shadow-md shadow-brand-500/20 active:scale-95 flex items-center space-x-2">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span class="hidden sm:inline">Connect Wallet</span>
+                        <span class="sm:hidden">Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- 1. Hero Section -->
+        <section class="relative overflow-hidden rounded-3xl glass-panel p-8 sm:p-12 border border-gray-800">
+            <!-- Background Decorative Glows -->
+            <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-brand-cyan/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="relative z-10 max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-semibold mb-6">
+                    <i class="fa-solid fa-sparkles"></i> 100% Beginner-Friendly Crypto Hub
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight mb-4">
+                    Learn, Track & Earn <br class="hidden sm:inline"/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-brand-cyan to-brand-emerald">Crypto From Scratch</span> Without Buying.
+                </h1>
+                <p class="text-gray-400 text-base sm:text-lg mb-8 leading-relaxed">
+                    Explore real-time coin markets, earn virtual rewards through short interactive quizzes, and discover zero-cost crypto bounties & airdrops.
+                </p>
+                
+                <div class="flex flex-wrap gap-4 items-center">
+                    <a href="#learn-earn" class="bg-brand-600 hover:bg-brand-500 text-white font-semibold px-6 py-3 rounded-xl transition-all shadow-lg shadow-brand-500/25 flex items-center gap-2">
+                        <i class="fa-solid fa-graduation-cap"></i> Start Learning & Earning
+                    </a>
+                    <a href="#airdrops" class="bg-gray-800/90 hover:bg-gray-700/90 text-gray-200 border border-gray-700 font-semibold px-6 py-3 rounded-xl transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-gift text-brand-cyan"></i> Browse Free Airdrops
+                    </a>
+                </div>
+
+                <!-- Quick Stats Mini Bar -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-10 pt-8 border-t border-gray-800/80">
+                    <div>
+                        <span class="text-xs text-gray-400 block uppercase font-medium">Active Coins</span>
+                        <span class="text-lg font-bold text-white">10,000+</span>
+                    </div>
+                    <div>
+                        <span class="text-xs text-gray-400 block uppercase font-medium">Live Market Vol</span>
+                        <span class="text-lg font-bold text-brand-emerald">$84.2B </span>
+                    </div>
+                    <div class="col-span-2 sm:col-span-1">
+                        <span class="text-xs text-gray-400 block uppercase font-medium">Free Tasks Available</span>
+                        <span class="text-lg font-bold text-brand-cyan">45 Active</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Live Market Tracker Table -->
+        <section id="market" class="space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-brand-cyan"></i> Live Crypto Market
+                    </h2>
+                    <p class="text-sm text-gray-400">Track real-time mockup price actions & simulate trades.</p>
+                </div>
+                
+                <!-- Search & Filters -->
+                <div class="flex items-center gap-3">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+                        <input type="text" id="coin-search" onkeyup="filterCoins()" placeholder="Search coin name or symbol..." class="w-full bg-gray-900/90 border border-gray-700/80 rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors">
+                    </div>
+                    <button onclick="refreshPrices()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 p-2.5 rounded-xl border border-gray-700/80 transition-all text-sm" title="Refresh Live Prices">
+                        <i class="fa-solid fa-rotate-right" id="refresh-icon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Market Table Card -->
+            <div class="glass-panel rounded-2xl overflow-hidden border border-gray-800">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-gray-300">
+                        <thead class="bg-gray-900/80 text-gray-400 uppercase text-xs font-semibold border-b border-gray-800">
+                            <tr>
+                                <th class="px-6 py-4"># Asset</th>
+                                <th class="px-6 py-4">Price (USD)</th>
+                                <th class="px-6 py-4">24h Change</th>
+                                <th class="px-6 py-4 hidden md:table-cell">Market Cap</th>
+                                <th class="px-6 py-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="coin-table-body" class="divide-y divide-gray-800/60 font-medium">
+                            <!-- Injected via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Grid Layout: Learn & Earn + Converter -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- 3. Learn & Earn Interactive Quiz Widget (2 Cols) -->
+            <section id="learn-earn" class="lg:col-span-2 glass-panel rounded-2xl p-6 sm:p-8 border border-gray-800 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <span class="text-xs font-bold text-brand-cyan uppercase tracking-wider">Module 1: Crypto Fundamentals</span>
+                            <h2 class="text-2xl font-bold text-white flex items-center gap-2 mt-1">
+                                <i class="fa-solid fa-lightbulb text-yellow-400"></i> Learn & Earn Quiz
+                            </h2>
+                        </div>
+                        <span id="quiz-reward-badge" class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold text-xs flex items-center gap-1">
+                            <i class="fa-solid fa-coins"></i> +50 PTS Reward
+                        </span>
+                    </div>
+
+                    <!-- Quiz Box -->
+                    <div id="quiz-card" class="glass-card rounded-xl p-6 border border-gray-700/50 mb-6">
+                        <div class="flex justify-between items-center text-xs text-gray-400 mb-3">
+                            <span id="quiz-progress-text">Question 1 of 3</span>
+                            <span id="quiz-category-tag" class="text-brand-400 font-semibold">Basics</span>
+                        </div>
+                        <h3 id="quiz-question" class="text-lg font-semibold text-white mb-4">
+                            What is the primary technology behind Cryptocurrencies that stores transactions in secure linked blocks?
+                        </h3>
+                        
+                        <!-- Options List -->
+                        <div id="quiz-options" class="space-y-3">
+                            <!-- Dynamic Options -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quiz Navigation & Feedback Footer -->
+                <div class="flex items-center justify-between pt-4 border-t border-gray-800">
+                    <div id="quiz-feedback" class="text-sm font-medium"></div>
+                    <button id="next-quiz-btn" onclick="nextQuestion()" class="bg-brand-600 hover:bg-brand-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all flex items-center gap-2">
+                        Next Question <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 5. Crypto Converter / Calculator (1 Col) -->
+            <section id="converter" class="glass-panel rounded-2xl p-6 sm:p-8 border border-gray-800 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white flex items-center gap-2 mb-2">
+                        <i class="fa-solid fa-calculator text-brand-500"></i> Quick Converter
+                    </h2>
+                    <p class="text-xs text-gray-400 mb-6">Calculate standard fiat conversions with live rates.</p>
+
+                    <div class="space-y-4">
+                        <!-- Input Amount -->
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">You Pay (USD)</label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-3 text-gray-400 font-semibold">$</span>
+                                <input type="number" id="convert-usd-input" value="100" oninput="calculateConversion()" class="w-full bg-gray-900 border border-gray-700 rounded-xl pl-8 pr-4 py-2.5 text-white font-semibold focus:outline-none focus:border-brand-500">
+                            </div>
+                        </div>
+
+                        <!-- Swap Icon -->
+                        <div class="flex justify-center -my-2">
+                            <div class="w-8 h-8 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-400">
+                                <i class="fa-solid fa-arrow-down-up-across-line text-xs"></i>
+                            </div>
+                        </div>
+
+                        <!-- Target Crypto Selector -->
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">You Receive (Estimated)</label>
+                            <div class="grid grid-cols-3 gap-2 mb-2">
+                                <select id="convert-crypto-select" onchange="calculateConversion()" class="col-span-3 bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-white font-semibold focus:outline-none focus:border-brand-500">
+                                    <option value="BTC">Bitcoin (BTC)</option>
+                                    <option value="ETH">Ethereum (ETH)</option>
+                                    <option value="SOL">Solana (SOL)</option>
+                                    <option value="BNB">BNB (BNB)</option>
+                                    <option value="DOGE">Dogecoin (DOGE)</option>
+                                </select>
+                            </div>
+                            <div class="bg-gray-900/90 border border-gray-700/80 rounded-xl p-3 text-center">
+                                <span id="convert-result" class="text-2xl font-extrabold text-brand-cyan">0.00154 BTC</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-800">
+                    <div class="flex justify-between items-center text-xs text-gray-400">
+                        <span>Rate updated just now</span>
+                        <span class="text-brand-emerald flex items-center gap-1"><i class="fa-solid fa-bolt"></i> Live Feed</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 4. Airdrop & Bounty Discovery Section -->
+        <section id="airdrops" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-gift text-brand-emerald"></i> Active Free Airdrops & Bounties
+                    </h2>
+                    <p class="text-sm text-gray-400">Verified zero-cost micro-tasks, testnets, and community bounties.</p>
+                </div>
+
+                <!-- Filter Tags -->
+                <div class="flex flex-wrap items-center gap-2" id="bounty-filter-container">
+                    <button onclick="filterBounties('all')" class="bounty-filter-btn active bg-brand-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all">All Tasks</button>
+                    <button onclick="filterBounties('testnet')" class="bounty-filter-btn bg-gray-800 hover:bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all">Testnets</button>
+                    <button onclick="filterBounties('micro-task')" class="bounty-filter-btn bg-gray-800 hover:bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all">Micro-Tasks</button>
+                    <button onclick="filterBounties('social')" class="bounty-filter-btn bg-gray-800 hover:bg-gray-700 text-gray-300 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all">Social Quests</button>
+                </div>
+            </div>
+
+            <!-- Bounties Grid Container -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="bounty-cards-container">
+                <!-- Dynamic Bounty Cards will be populated here -->
+            </div>
+        </section>
+
+        <!-- Beginner Tips Banner -->
+        <section class="glass-card rounded-2xl p-6 border border-brand-500/20 bg-gradient-to-r from-brand-600/10 via-brand-cyan/10 to-transparent flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-xl bg-brand-500/20 text-brand-cyan flex items-center justify-center text-2xl shrink-0">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-base">Beginner Security Guardrail</h3>
+                    <p class="text-xs text-gray-400">Never share your private key or seed phrase with anyone. Authentic bounties will NEVER ask for money first.</p>
+                </div>
+            </div>
+            <button onclick="showToast('Security Reminder: Always keep seed phrases private!', 'info')" class="shrink-0 bg-gray-800 hover:bg-gray-700 text-white text-xs font-semibold px-4 py-2 rounded-xl border border-gray-700">
+                Got It
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-panel border-t border-gray-800 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-500">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-cube text-brand-500"></i>
+                <span class="font-semibold text-gray-300">NexusCrypto Educational Dashboard</span>
+                <span>© 2026. All rights reserved.</span>
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-gray-300">Terms</a>
+                <a href="#" class="hover:text-gray-300">Privacy Policy</a>
+                <a href="#" class="hover:text-gray-300">Disclaimer</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- 1. Global State & Initial Mock Data ---
+        let userPoints = 150;
+        
+        // Live Mock Coin Data
+        const cryptoData = [
+            { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 64850.00, change: 2.45, cap: '$1.27 Trillion', icon: 'fa-bitcoin text-amber-500' },
+            { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 3490.50, change: -1.15, cap: '$419.2 Billion', icon: 'fa-ethereum text-indigo-400' },
+            { id: 'solana', name: 'Solana', symbol: 'SOL', price: 148.75, change: 5.80, cap: '$69.4 Billion', icon: 'fa-bolt text-purple-400' },
+            { id: 'binancecoin', name: 'BNB', symbol: 'BNB', price: 582.10, change: 0.85, cap: '$85.1 Billion', icon: 'fa-coins text-yellow-500' },
+            { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE', price: 0.124, change: -3.40, cap: '$18.0 Billion', icon: 'fa-dog text-amber-400' }
+        ];
+
+        // Quiz Questions Data
+        const quizQuestions = [
+            {
+                category: "Basics",
+                reward: 50,
+                question: "What is the primary technology behind Cryptocurrencies that stores transactions in secure linked blocks?",
+                options: [
+                    { text: "Centralized Banking Servers", correct: false },
+                    { text: "Blockchain Technology", correct: true },
+                    { text: "Quantum Cloud Hard Drives", correct: false },
+                    { text: "Peer-to-Peer FTP Servers", correct: false }
+                ]
+            },
+            {
+                category: "Wallets & Security",
+                reward: 50,
+                question: "What secret phrase should you NEVER give to anyone online under any circumstance?",
+                options: [
+                    { text: "Your Public Wallet Address", correct: false },
+                    { text: "Your Seed Phrase / Private Key", correct: true },
+                    { text: "Your Twitter Handle", correct: false },
+                    { text: "Your Discord Username", correct: false }
+                ]
+            },
+            {
+                category: "Airdrops",
+                reward: 50,
+                question: "What is a crypto 'Airdrop'?",
+                options: [
+                    { text: "Dropping physical Bitcoins from a plane", correct: false },
+                    { text: "Free distribution of crypto tokens to early network users", correct: true },
+                    { text: "A sudden crash in market price", correct: false },
+                    { text: "A paid subscription plan for crypto news", correct: false }
+                ]
+            }
+        ];
+
+        let currentQuizIndex = 0;
+        let quizAnswered = false;
+
+        // Airdrop & Bounty Mock Data
+        const bountyData = [
+            {
+                id: 1,
+                title: "Monad Testnet Interactive Quest",
+                category: "testnet",
+                reward: "$15-$50 Est. Token Value",
+                difficulty: "Beginner",
+                time: "10 mins",
+                desc: "Request free faucet tokens on testnet and execute 3 test swaps on the dApp to qualify for future token distribution.",
+                linkText: "Start Testnet Task"
+            },
+            {
+                id: 2,
+                title: "Solana Superteam Content Bounty",
+                category: "micro-task",
+                reward: "$40 USDC",
+                difficulty: "Intermediate",
+                time: "30 mins",
+                desc: "Write a short 300-word explanation of Web3 security for beginners and post it on Twitter or Medium.",
+                linkText: "Claim Bounty Task"
+            },
+            {
+                id: 3,
+                title: "Galxe Web3 Social Community Pass",
+                category: "social",
+                reward: "Free Mint NFT & 200 PTS",
+                difficulty: "Easy",
+                time: "3 mins",
+                desc: "Follow official channels, join the Discord server, and verify your account to unlock the Genesis badge.",
+                linkText: "Join Quest"
+            },
+            {
+                id: 4,
+                title: "Base Protocol Bridge Test",
+                category: "testnet",
+                reward: "Airdrop Eligibility",
+                difficulty: "Beginner",
+                time: "5 mins",
+                desc: "Bridge simulated Sepolia testnet tokens onto the test environment to stress-test transaction speed.",
+                linkText: "Start Testnet Task"
+            }
+        ];
+
+        // --- 2. Render Functions ---
+
+        // Render Coin Table
+        function renderCoinTable(coinsToRender = cryptoData) {
+            const tbody = document.getElementById('coin-table-body');
+            tbody.innerHTML = '';
+
+            coinsToRender.forEach((coin, index) => {
+                const isPositive = coin.change >= 0;
+                const changeColor = isPositive ? 'text-brand-emerald' : 'text-rose-500';
+                const changeIcon = isPositive ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down';
+                const formattedPrice = coin.price < 1 ? `$${coin.price.toFixed(3)}` : `$${coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-gray-800/40 transition-colors border-b border-gray-800/60";
+                row.innerHTML = `
+                    <td class="px-6 py-4 flex items-center space-x-3">
+                        <div class="w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center text-lg">
+                            <i class="fa-brands ${coin.icon}"></i>
+                        </div>
+                        <div>
+                            <span class="font-bold text-white block">${coin.name}</span>
+                            <span class="text-xs text-gray-400 uppercase">${coin.symbol}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-white">${formattedPrice}</td>
+                    <td class="px-6 py-4 ${changeColor} font-semibold">
+                        <span class="inline-flex items-center gap-1">
+                            <i class="fa-solid ${changeIcon} text-xs"></i>
+                            ${isPositive ? '+' : ''}${coin.change.toFixed(2)}%
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-gray-400 hidden md:table-cell">${coin.cap}</td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="openTradeModal('${coin.symbol}', ${coin.price})" class="bg-brand-600/20 hover:bg-brand-600 text-brand-400 hover:text-white border border-brand-500/30 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+                            Trade
+                        </button>
+                        <button onclick="toggleTrack('${coin.symbol}')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all">
+                            <i class="fa-regular fa-star"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Filter Coins via Search Input
+        function filterCoins() {
+            const query = document.getElementById('coin-search').value.toLowerCase();
+            const filtered = cryptoData.filter(coin => 
+                coin.name.toLowerCase().includes(query) || 
+                coin.symbol.toLowerCase().includes(query)
+            );
+            renderCoinTable(filtered);
+        }
+
+        // Simulate Price Refresh
+        function refreshPrices() {
+            const icon = document.getElementById('refresh-icon');
+            icon.classList.add('fa-spin');
+            
+            setTimeout(() => {
+                cryptoData.forEach(coin => {
+                    const fluctuation = (Math.random() * 4 - 2); // -2% to +2% change
+                    coin.price = Math.max(0.001, coin.price * (1 + fluctuation / 100));
+                    coin.change += fluctuation;
+                });
+                renderCoinTable();
+                calculateConversion();
+                icon.classList.remove('fa-spin');
+                showToast("Live market prices updated!", "info");
+            }, 600);
+        }
+
+        // Render Current Quiz Question
+        function renderQuiz() {
+            const q = quizQuestions[currentQuizIndex];
+            document.getElementById('quiz-progress-text').innerText = `Question ${currentQuizIndex + 1} of ${quizQuestions.length}`;
+            document.getElementById('quiz-category-tag').innerText = q.category;
+            document.getElementById('quiz-question').innerText = q.question;
+            document.getElementById('quiz-feedback').innerHTML = '';
+
+            const optionsContainer = document.getElementById('quiz-options');
+            optionsContainer.innerHTML = '';
+
+            quizAnswered = false;
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "w-full text-left p-4 rounded-xl glass-card hover:bg-gray-800/80 border border-gray-700/60 text-sm font-medium text-gray-200 transition-all flex items-center justify-between group";
+                btn.innerHTML = `
+                    <span>${opt.text}</span>
+                    <i class="fa-regular fa-circle text-gray-500 group-hover:text-brand-400"></i>
+                `;
+                btn.onclick = () => selectQuizAnswer(btn, opt.correct, q.reward);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Select Quiz Answer Logic
+        function selectQuizAnswer(button, isCorrect, rewardAmount) {
+            if (quizAnswered) return;
+            quizAnswered = true;
+
+            const feedback = document.getElementById('quiz-feedback');
+            const optionsContainer = document.getElementById('quiz-options');
+            const buttons = optionsContainer.getElementsByTagName('button');
+
+            // Disable all option buttons
+            for (let b of buttons) {
+                b.classList.add('cursor-not-allowed', 'opacity-70');
+            }
+
+            if (isCorrect) {
+                button.className = "w-full text-left p-4 rounded-xl bg-emerald-500/20 border border-emerald-500 text-sm font-semibold text-emerald-300 flex items-center justify-between";
+                button.querySelector('i').className = "fa-solid fa-circle-check text-emerald-400";
+                feedback.innerHTML = `<span class="text-emerald-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-check"></i> Correct! +${rewardAmount} PTS added!</span>`;
+                
+                // Update User Points
+                userPoints += rewardAmount;
+                document.getElementById('user-points').innerText = `${userPoints} PTS`;
+                showToast(`Quiz Passed! Earned ${rewardAmount} PTS!`, "success");
+            } else {
+                button.className = "w-full text-left p-4 rounded-xl bg-rose-500/20 border border-rose-500 text-sm font-semibold text-rose-300 flex items-center justify-between";
+                button.querySelector('i').className = "fa-solid fa-circle-xmark text-rose-400";
+                feedback.innerHTML = `<span class="text-rose-400 font-bold flex items-center gap-1.5"><i class="fa-solid fa-circle-xmark"></i> Incorrect. Try the next question!</span>`;
+            }
+        }
+
+        // Next Question Handler
+        function nextQuestion() {
+            if (!quizAnswered) {
+                showToast("Please choose an answer first!", "warning");
+                return;
+            }
+            currentQuizIndex = (currentQuizIndex + 1) % quizQuestions.length;
+            renderQuiz();
+        }
+
+        // Converter Calculation Logic
+        function calculateConversion() {
+            const usdVal = parseFloat(document.getElementById('convert-usd-input').value) || 0;
+            const targetSymbol = document.getElementById('convert-crypto-select').value;
+            const coin = cryptoData.find(c => c.symbol === targetSymbol);
+            
+            if (coin && coin.price > 0) {
+                const cryptoAmount = (usdVal / coin.price).toFixed(coin.price > 100 ? 5 : 2);
+                document.getElementById('convert-result').innerText = `${cryptoAmount} ${coin.symbol}`;
+            }
+        }
+
+        // Render Bounty Cards
+        function renderBounties(category = 'all') {
+            const container = document.getElementById('bounty-cards-container');
+            container.innerHTML = '';
+
+            const filtered = category === 'all' 
+                ? bountyData 
+                : bountyData.filter(b => b.category === category);
+
+            filtered.forEach(bounty => {
+                const card = document.createElement('div');
+                card.className = "glass-card hover:glass-panel rounded-2xl p-6 border border-gray-800 glow-border transition-all flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold uppercase bg-brand-500/10 border border-brand-500/30 text-brand-400">
+                                ${bounty.category}
+                            </span>
+                            <span class="text-xs text-gray-400 flex items-center gap-1">
+                                <i class="fa-regular fa-clock"></i> ${bounty.time}
+                            </span>
+                        </div>
+                        <h3 class="font-bold text-white text-lg mb-2">${bounty.title}</h3>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-4">${bounty.desc}</p>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center py-3 border-t border-b border-gray-800/80 mb-4 text-xs">
+                            <span class="text-gray-400">Est. Reward</span>
+                            <span class="font-bold text-brand-emerald">${bounty.reward}</span>
+                        </div>
+                        <button onclick="openBountyModal('${bounty.title}', '${bounty.reward}')" class="w-full bg-gray-800 hover:bg-brand-600 text-white font-semibold py-2.5 rounded-xl text-xs transition-colors flex items-center justify-center gap-2">
+                            <span>${bounty.linkText}</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Bounty Category Filter Button Click Handler
+        function filterBounties(category) {
+            const buttons = document.querySelectorAll('.bounty-filter-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-brand-600', 'text-white');
+                btn.classList.add('bg-gray-800', 'text-gray-300');
+            });
+            event.target.classList.remove('bg-gray-800', 'text-gray-300');
+            event.target.classList.add('bg-brand-600', 'text-white');
+            renderBounties(category);
+        }
+
+        // --- 3. Modals & Notifications ---
+
+        function openModal(htmlContent) {
+            const modal = document.getElementById('action-modal');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-body').innerHTML = htmlContent;
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('action-modal');
+            const content = document.getElementById('modal-content');
+            
+            modal.classList.add('opacity-0');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function openTradeModal(symbol, price) {
+            const html = `
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-brand-500/20 text-brand-cyan rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-1">Simulate Trading ${symbol}</h3>
+                    <p class="text-xs text-gray-400 mb-6">Current Rate: $${price.toLocaleString()}</p>
+                    
+                    <div class="space-y-4 text-left mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-400 mb-1">Amount to Trade (USD)</label>
+                            <input type="number" value="50" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2 text-white font-semibold focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div class="bg-brand-500/10 border border-brand-500/30 p-3 rounded-xl text-xs text-gray-300">
+                            <i class="fa-solid fa-circle-info text-brand-400"></i> Demonstration Mode: Trades execute with simulated virtual paper balances.
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="executeSimulatedTrade('${symbol}')" class="w-full bg-brand-emerald hover:opacity-90 text-white font-bold py-2.5 rounded-xl text-sm transition-all">Buy ${symbol}</button>
+                        <button onclick="closeModal()" class="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-bold py-2.5 rounded-xl text-sm transition-all">Cancel</button>
+                    </div>
+                </div>
+            `;
+            openModal(html);
+        }
+
+        function executeSimulatedTrade(symbol) {
+            closeModal();
+            showToast(`Paper Order Executed: Bought ${symbol} successfully!`, "success");
+        }
+
+        function openBountyModal(title, reward) {
+            const html = `
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-brand-emerald/20 text-brand-emerald rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                        <i class="fa-solid fa-rocket"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">${title}</h3>
+                    <p class="text-xs text-brand-emerald font-semibold mb-4">Estimated Payout: ${reward}</p>
+                    
+                    <p class="text-xs text-gray-300 leading-relaxed mb-6">
+                        You are proceeding to complete off-chain verification for this free quest. Ensure your Web3 wallet is connected to log your progress.
+                    </p>
+
+                    <button onclick="startBountyAction('${title}')" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-2.5 rounded-xl text-sm transition-all shadow-lg shadow-brand-500/20">
+                        Proceed to Quest Page
+                    </button>
+                </div>
+            `;
+            openModal(html);
+        }
+
+        function startBountyAction(title) {
+            closeModal();
+            showToast(`Quest started for "${title}". Track status in dashboard!`, "info");
+        }
+
+        function openSimulatedWallet() {
+            const html = `
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-brand-500/20 text-brand-cyan rounded-full flex items-center justify-center mx-auto mb-4 text-xl">
+                        <i class="fa-solid fa-wallet"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Connect Web3 Wallet</h3>
+                    <p class="text-xs text-gray-400 mb-6">Choose your preferred provider for testing.</p>
+
+                    <div class="space-y-3 mb-6">
+                        <button onclick="connectWalletMock('MetaMask')" class="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700/80 p-3 rounded-xl flex items-center justify-between transition-all">
+                            <span class="text-sm font-semibold text-white flex items-center gap-3">
+                                <i class="fa-solid fa-fox text-amber-500"></i> MetaMask
+                            </span>
+                            <span class="text-xs text-gray-400">Popular</span>
+                        </button>
+                        <button onclick="connectWalletMock('Phantom')" class="w-full bg-gray-900 hover:bg-gray-800 border border-gray-700/80 p-3 rounded-xl flex items-center justify-between transition-all">
+                            <span class="text-sm font-semibold text-white flex items-center gap-3">
+                                <i class="fa-solid fa-ghost text-purple-400"></i> Phantom (Solana)
+                            </span>
+                            <span class="text-xs text-gray-400">Fast</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            openModal(html);
+        }
+
+        function connectWalletMock(provider) {
+            closeModal();
+            showToast(`${provider} Wallet Connected! Address: 0x71C...4f9`, "success");
+        }
+
+        function toggleTrack(symbol) {
+            showToast(`Added ${symbol} to your personal watchlist!`, "info");
+        }
+
+        // Custom Toast Notification System
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let bgClass = "bg-gray-800 border-gray-700 text-white";
+            let icon = "fa-circle-info text-brand-cyan";
+
+            if (type === "success") {
+                bgClass = "bg-emerald-950/90 border-emerald-500/50 text-emerald-200";
+                icon = "fa-circle-check text-emerald-400";
+            } else if (type === "warning") {
+                bgClass = "bg-amber-950/90 border-amber-500/50 text-amber-200";
+                icon = "fa-triangle-exclamation text-amber-400";
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-xl backdrop-blur-md text-xs font-semibold transform transition-all duration-300 translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-base"></i> <span>${message}</span>`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // --- 4. Initialization ---
+        window.onload = function() {
+            renderCoinTable();
+            renderQuiz();
+            calculateConversion();
+            renderBounties();
+        };
+    </script>
+</body>
+</html>
+```
